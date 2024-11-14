@@ -1,0 +1,40 @@
+
+<h1>Chat Room <%= @room.name %></h1>
+
+<div id="messages">
+  <%= render @messages %>
+</div>
+
+<form id="new_message" action="javascript:void(0);">
+  <input type="text" id="message_content" placeholder="Type your message..." autocomplete="off" />
+  <button type="submit">Send</button>
+</form>
+
+<script>
+  const roomId = <%= @room.id %>;
+  const userId = <%= current_user.id %>;
+
+  App.cable.subscriptions.create(
+    { channel: "ChatChannel", room: roomId },
+    {
+      connected() {
+        console.log("Connected to chat room " + roomId);
+      },
+
+      received(data) {
+        const messages = document.getElementById("messages");
+        messages.innerHTML += data.message;
+      },
+
+      disconnected() {
+        alert("Disconnected from chat room " + roomId);
+      }
+    }
+  );
+
+  document.getElementById("new_message").addEventListener("submit", function() {
+    const messageInput = document.getElementById("message_content");
+    App.cable.subscriptions.subscriptions[0].send({ message: messageInput.value });
+    messageInput.value = "";
+  });
+</script>
